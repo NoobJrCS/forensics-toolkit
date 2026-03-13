@@ -1,11 +1,12 @@
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 from werkzeug.utils import secure_filename
 from backend.modules.hash_checker import calculate_hashes
 from backend.modules.log_analyzer import parse_auth_log
 from backend.modules.timeline_generator import generate_timeline
 from backend.modules.db_manager import init_db, save_evidence, get_all_evidence
 from backend.modules.pcap_analyzer import analyze_pcap
+from backend.modules.report_generator import create_pdf_report
 
 app = Flask(__name__)
 
@@ -70,6 +71,15 @@ def analyze_pcap_route():
         
     saved_evidence = get_all_evidence()
     return render_template('index.html', pcap_ips=suspicious_ips, pcap_alerts=alerts, saved_evidence=saved_evidence)
+
+# --- NEW ROUTE FOR REPORT GENERATOR ---
+@app.route('/download-report')
+def download_report():
+    # Generate the PDF and get the file path
+    report_path = create_pdf_report()
+    
+    # Send the file to the user's browser as a download
+    return send_file(report_path, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
