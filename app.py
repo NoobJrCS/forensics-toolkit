@@ -7,6 +7,7 @@ from backend.modules.timeline_generator import generate_timeline
 from backend.modules.db_manager import init_db, save_evidence, get_all_evidence
 from backend.modules.pcap_analyzer import analyze_pcap
 from backend.modules.report_generator import create_pdf_report
+from backend.modules.malware_scanner import scan_for_malware
 
 app = Flask(__name__)
 
@@ -26,15 +27,22 @@ def home():
 def hash_file():
     if 'file' not in request.files:
         return "No file uploaded", 400
+    
     file = request.files['file']
     filename = secure_filename(file.filename)
     file_content = file.read()
     
+    # Calculate hashes and save to database
     hashes = calculate_hashes(file_content)
     save_evidence(filename, hashes['MD5'], hashes['SHA256'])
     
+    # NEW: Scan the generated hashes against our malware database
+    scan_result = scan_for_malware(hashes)
+    
     saved_evidence = get_all_evidence()
-    return render_template('index.html', hashes=hashes, filename=filename, saved_evidence=saved_evidence)
+    
+    # Pass the scan_result to the frontend
+    return render_template('index.html', hashes=hashes, filename=filename, saved_evidence=saved_evidence, scan_result=scan_result)
 
 @app.route('/analyze-log', methods=['POST'])
 def analyze_log():

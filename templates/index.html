@@ -31,10 +31,10 @@
     </div>
 
     <div style="border: 1px solid black; padding: 10px; margin-bottom: 20px;">
-        <h2>1. Evidence Hash Verification</h2>
+        <h2>1. Evidence Hash Verification & Malware Scanner</h2>
         <form action="/hash" method="POST" enctype="multipart/form-data">
             <input type="file" name="file" required>
-            <button type="submit">Calculate & Save Hash</button>
+            <button type="submit">Calculate Hash & Scan</button>
         </form>
         
         {% if hashes %}
@@ -44,6 +44,22 @@
                 <li><strong>SHA1:</strong> {{ hashes.SHA1 }}</li>
                 <li><strong>SHA256:</strong> {{ hashes.SHA256 }}</li>
             </ul>
+
+            {% if scan_result %}
+                {% if scan_result.is_malware %}
+                    <div style="background-color: #ffe6e6; border: 2px solid red; padding: 15px; margin-top: 15px;">
+                        <h3 style="color: red; margin-top: 0;">⚠️ MALWARE DETECTED! ⚠️</h3>
+                        <p><strong>Threat Name:</strong> {{ scan_result.threat_name }}</p>
+                        <p><strong>Matched Signature:</strong> {{ scan_result.matched_hash }}</p>
+                        <p><em>Immediate containment recommended.</em></p>
+                    </div>
+                {% else %}
+                    <div style="background-color: #e6ffe6; border: 2px solid green; padding: 10px; margin-top: 15px;">
+                        <h4 style="color: green; margin: 0;">✅ File is clean. No known malware signatures found.</h4>
+                    </div>
+                {% endif %}
+            {% endif %}
+            
         {% endif %}
     </div>
 
